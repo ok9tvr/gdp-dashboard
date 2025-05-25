@@ -37,6 +37,30 @@ FLUOROCHROM_DB = {
     "VioGreen": (520, "405 nm")
 }
 
+# Přibližná spektrální data (vlnová délka, relativní intenzita)
+SPECTRA_DB = {
+    "FITC": [(480, 0.1), (500, 0.5), (519, 1.0), (540, 0.5), (560, 0.2), (580, 0.05)],
+    "PE": [(540, 0.1), (560, 0.4), (578, 1.0), (600, 0.6), (620, 0.3), (650, 0.1)],
+    "PerCP": [(640, 0.1), (660, 0.5), (677, 1.0), (700, 0.4), (720, 0.1)],
+    "APC": [(620, 0.1), (640, 0.5), (660, 1.0), (680, 0.5), (700, 0.2)],
+    "Pacific Blue": [(420, 0.1), (440, 0.6), (455, 1.0), (470, 0.5), (490, 0.1)],
+    "Alexa Fluor 700": [(680, 0.1), (700, 0.5), (723, 1.0), (740, 0.4), (760, 0.1)],
+    "BV421": [(400, 0.1), (410, 0.5), (421, 1.0), (440, 0.5), (460, 0.2)],
+    "BV510": [(470, 0.1), (490, 0.5), (510, 1.0), (530, 0.5), (550, 0.2)],
+    "BV605": [(570, 0.1), (590, 0.5), (605, 1.0), (620, 0.5), (640, 0.2)],
+    "BV711": [(670, 0.1), (690, 0.5), (711, 1.0), (730, 0.5), (750, 0.2)],
+    "PE-Cy5.5": [(660, 0.1), (680, 0.5), (695, 1.0), (710, 0.5), (730, 0.2)],
+    "PE-Cy7": [(740, 0.1), (760, 0.5), (780, 1.0), (800, 0.4), (820, 0.1)],
+    "APC-Cy7": [(740, 0.1), (760, 0.5), (785, 1.0), (800, 0.4), (820, 0.1)],
+    "ECD": [(580, 0.1), (600, 0.5), (610, 1.0), (630, 0.5), (650, 0.2)],
+    "Pacific Orange": [(520, 0.1), (540, 0.5), (551, 1.0), (570, 0.5), (590, 0.2)],
+    "BV650": [(620, 0.1), (640, 0.5), (650, 1.0), (670, 0.5), (690, 0.2)],
+    "Alexa Fluor 647": [(630, 0.1), (650, 0.5), (668, 1.0), (690, 0.5), (710, 0.2)],
+    "PE-CF594": [(580, 0.1), (600, 0.5), (617, 1.0), (640, 0.5), (660, 0.2)],
+    "AmCyan": [(460, 0.1), (480, 0.5), (491, 1.0), (510, 0.5), (530, 0.2)],
+    "VioGreen": [(480, 0.1), (500, 0.5), (520, 1.0), (540, 0.5), (560, 0.2)]
+}
+
 LASER_BARVY = {
     "405 nm": "#D6BBF7",  # fialová
     "488 nm": "#A9CCE3",  # světle modrá
@@ -71,15 +95,16 @@ def generuj_spektra(fluora):
     # Vytvoření grafu emisních spekter
     fig, ax = plt.subplots(figsize=(6, 4))
     vlnove_delky = np.linspace(400, 800, 400)  # Rozsah vlnových délek (nm)
-    sigma = 30  # Šířka gaussovské křivky (přibližná hodnota pro fluorochromy)
     
     for fluor in set(fluora):  # Použijeme set pro odstranění duplikátů
-        emisni_max = FLUOROCHROM_DB[fluor][0]
         laser = FLUOROCHROM_DB[fluor][1]
         barva = LASER_BARVY.get(laser, "gray")
-        # Gaussovská křivka pro simulaci emisního spektra
-        intenzita = np.exp(-((vlnove_delky - emisni_max) ** 2) / (2 * sigma ** 2))
-        ax.plot(vlnove_delky, intenzita, label=fluor, color=barva, linewidth=2)
+        # Získání spektrálních dat
+        spektrum = SPECTRA_DB[fluor]
+        vlnove_delky_spektra, intenzity = zip(*spektrum)  # Rozbalení tuple
+        # Interpolace pro hladkou křivku
+        intenzity_interpol = np.interp(vlnove_delky, vlnove_delky_spektra, intenzity)
+        ax.plot(vlnove_delky, intenzity_interpol, label=fluor, color=barva, linewidth=2)
     
     ax.set_xlabel("Vlnová délka (nm)")
     ax.set_ylabel("Relativní intenzita")
