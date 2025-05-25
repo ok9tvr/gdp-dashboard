@@ -37,7 +37,7 @@ def kontroluj_spektralni_konflikt(vybrane):
     return konflikt
 
 def generuj_kompenzaci(fluora):
-    kanaly = fluora
+    kanaly = list(dict.fromkeys(fluora))  # odstranění duplikátů
     data = []
     for r in kanaly:
         row = []
@@ -72,4 +72,4 @@ else:
     st.success("Bez spektrálních konfliktů. Panel je v pořádku.")
 
 st.write("**Předpokládaná kompenzační matice (%):**")
-st.dataframe(generuj_kompenzaci(zvolene_fluora).style.background_gradient(axis=None))
+st.dataframe(generuj_kompenzaci(zvolene_fluora))
