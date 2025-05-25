@@ -3,14 +3,66 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Ukázková databáze markerů a typických diagnóz
+# Rozšířená databáze markerů a scénářů (včetně výukových scénářů)
 MARKER_DB = {
-    "Leukémie": ["CD45", "CD34", "CD117", "CD13", "CD33"],
-    "Imunodeficience": ["CD45", "CD3", "CD4", "CD8", "CD19", "CD56"],
-    "Lymfomy": ["CD45", "CD20", "CD5", "CD10", "BCL2", "Ki67"],
-    "Monocyty - fenotypizace": ["CD45", "CD14", "CD16", "HLA-DR"],
-    "B-lymfocyty - fenotypizace": ["CD45", "CD19", "CD20", "CD27", "IgD", "CD38"],
-    "T-lymfocyty - fenotypizace": ["CD45", "CD3", "CD4", "CD8", "CD25", "CD127"]
+    "Leukémie": {
+        "markery": ["CD45", "CD34", "CD117", "CD13", "CD33"],
+        "popis": "Akutní myeloidní leukémie (AML) a lymfoblastická leukémie (ALL). CD45 je obecný leukocytový marker, CD34 a CD117 označují kmenové buňky, CD13/CD33 myeloidní linie."
+    },
+    "Imunodeficience": {
+        "markery": ["CD45", "CD3", "CD4", "CD8", "CD19", "CD56"],
+        "popis": "Poruchy imunitního systému, např. HIV/AIDS nebo SCID. CD4/CD8 poměr je klíčový pro hodnocení T-buněčných subpopulací, CD19 označuje B-buňky, CD56 NK-buňky."
+    },
+    "Lymfomy": {
+        "markery": ["CD45", "CD20", "CD5", "CD10", "BCL2", "Ki67"],
+        "popis": "Non-Hodgkinovy a Hodgkinovy lymfomy. CD20 je marker B-buněk, CD5/CD10 pomáhají rozlišit typy lymfomů, BCL2 označuje antiapoptotickou aktivitu, Ki67 proliferaci."
+    },
+    "Autoimunitní onemocnění": {
+        "markery": ["CD45", "CD3", "CD4", "CD25", "FOXP3", "CD19"],
+        "popis": "Např. revmatoidní artritida nebo lupus. CD25 a FOXP3 označují regulační T-buňky (Treg), které regulují imunitní toleranci."
+    },
+    "Alergie": {
+        "markery": ["CD45", "CD3", "CD4", "CD23", "IgE", "CD203c"],
+        "popis": "Alergické reakce, např. atopická dermatitida. CD23 a IgE jsou klíčové pro B-buněčnou aktivaci, CD203c označuje aktivované bazofily."
+    },
+    "T-buněčná aktivace (výuka)": {
+        "markery": ["CD3", "CD4", "CD8", "CD25", "CD69", "CD44"],
+        "popis": "Modeluje proces aktivace T-buněk během imunitní odpovědi. CD25 a CD69 jsou markery časné aktivace, CD44 označuje paměťové T-buňky."
+    },
+    "B-buněčná diferenciace (výuka)": {
+        "markery": ["CD19", "CD20", "CD27", "CD38", "IgM", "IgD"],
+        "popis": "Sleduje vývoj B-buněk od naivních po plazmatické buňky. CD27 označuje paměťové B-buňky, CD38 plazmatické buňky."
+    }
+}
+
+# Popisy markerů pro výukové účely
+MARKER_POPIS = {
+    "CD45": "Obecný leukocytový marker, exprimován na všech hematopoetických buňkách kromě erytrocytů.",
+    "CD34": "Marker kmenových buněk, exprimován na hematopoetických prekurzorech.",
+    "CD117": "C-kit, marker kmenových buněk a mastocytů.",
+    "CD13": "Myeloidní marker, exprimován na granulocytech a monocytech.",
+    "CD33": "Myeloidní marker, typický pro AML a monocyty.",
+    "CD3": "Součást T-buněčného receptoru, exprimován na T-buňkách.",
+    "CD4": "Ko-receptor na T-helper buňkách, klíčový pro MHC-II interakce.",
+    "CD8": "Ko-receptor na cytotoxických T-buňkách, váže MHC-I.",
+    "CD19": "Marker B-buněk, klíčový pro signalizaci B-buněčného receptoru.",
+    "CD56": "Marker NK-buněk, exprimován také na některých T-buňkách.",
+    "CD20": "Marker zralých B-buněk, cíl pro monoklonální protilátky (např. rituximab).",
+    "CD5": "Exprimován na T-buňkách a podskupině B-buněk (B1), typický pro CLL.",
+    "CD10": "Marker nezralých B-buněk, exprimován v ALL a folikulárních lymfomech.",
+    "BCL2": "Antiapoptotický protein, zvýšená exprese u lymfomů.",
+    "Ki67": "Marker proliferace, exprimován v dělících se buňkách.",
+    "CD25": "IL-2 receptor alfa, marker aktivovaných T-buněk a Treg.",
+    "FOXP3": "Transkripční faktor, specifický pro regulační T-buňky (Treg).",
+    "CD23": "Nízký afinitní receptor IgE, exprimován na B-buňkách a bazofilech.",
+    "IgE": "Imunoglobulin spojený s alergickými reakcemi, váže se na CD23.",
+    "CD203c": "Marker aktivace bazofilů, používaný při alergických testech.",
+    "CD69": "Časný aktivační marker T- a NK-buněk.",
+    "CD44": "Marker paměťových T-buněk, podílí se na adhezi a migraci.",
+    "CD27": "Marker paměťových B-buněk, podílí se na kostimulaci.",
+    "CD38": "Marker plazmatických buněk a aktivovaných lymfocytů.",
+    "IgM": "První imunoglobulin exprimovaný naivními B-buňkami.",
+    "IgD": "Marker naivních B-buněk, exprimován společně s IgM."
 }
 
 # Fluorochromy s emisními maximy (nm) a laserem
@@ -38,7 +90,6 @@ FLUOROCHROM_DB = {
 }
 
 # Přibližná spektrální data (vlnová délka, relativní intenzita)
-# Poznámka: Tato data lze nahradit přesnějšími spektry z FPbase, Thermo Fisher apod.
 SPECTRA_DB = {
     "FITC": [(480, 0.1), (500, 0.5), (519, 1.0), (540, 0.5), (560, 0.2), (580, 0.05)],
     "PE": [(540, 0.1), (560, 0.4), (578, 1.0), (600, 0.6), (620, 0.3), (650, 0.1)],
@@ -93,20 +144,15 @@ def generuj_kompenzaci(fluora):
     return pd.DataFrame(data, index=kanaly, columns=kanaly)
 
 def generuj_spektra(fluora):
-    # Vytvoření grafu emisních spekter
     fig, ax = plt.subplots(figsize=(6, 4))
-    vlnove_delky = np.linspace(400, 800, 400)  # Rozsah vlnových délek (nm)
-    
-    for fluor in set(fluora):  # Použijeme set pro odstranění duplikátů
+    vlnove_delky = np.linspace(400, 800, 400)
+    for fluor in set(fluora):
         laser = FLUOROCHROM_DB[fluor][1]
         barva = LASER_BARVY.get(laser, "gray")
-        # Získání spektrálních dat
         spektrum = SPECTRA_DB[fluor]
-        vlnove_delky_spektra, intenzity = zip(*spektrum)  # Rozbalení tuple
-        # Interpolace pro hladkou křivku
+        vlnove_delky_spektra, intenzity = zip(*spektrum)
         intenzity_interpol = np.interp(vlnove_delky, vlnove_delky_spektra, intenzity)
         ax.plot(vlnove_delky, intenzity_interpol, label=fluor, color=barva, linewidth=2)
-    
     ax.set_xlabel("Vlnová délka (nm)")
     ax.set_ylabel("Relativní intenzita")
     ax.set_title("Emisní spektra vybraných fluorochromů")
@@ -115,18 +161,39 @@ def generuj_spektra(fluora):
     plt.tight_layout()
     return fig
 
-st.title("AI nástroj: Návrh panelu a spektrální kompenzace")
+st.title("AI nástroj: Návrh panelu a spektrální kompenzace pro výuku imunologie")
 
-scenar = st.selectbox("Vyberte klinický scénář:", list(MARKER_DB.keys()))
-navrzeno = MARKER_DB[scenar]
-st.write(f"**Navržené markery:** {', '.join(navrzeno)}")
+# Výběr režimu
+rezim = st.radio("Vyberte režim:", ["Přednastavený klinický scénář", "Ruční výběr markerů"])
+
+if rezim == "Přednastavený klinický scénář":
+    scenar = st.selectbox("Vyberte klinický nebo výukový scénář:", list(MARKER_DB.keys()))
+    navrzeno = MARKER_DB[scenar]["markery"]
+    st.write(f"**Popis scénáře:** {MARKER_DB[scenar]['popis']}")
+    st.write(f"**Navržené markery:** {', '.join(navrzeno)}")
+else:
+    st.write("**Vyberte markery ručně (max. 8):**")
+    vsechny_markery = sorted(list(MARKER_POPIS.keys()))
+    navrzeno = st.multiselect(
+        "Vyberte CD markery:",
+        vsechny_markery,
+        default=["CD45", "CD3", "CD4"],
+        max_selections=8,
+        help="Vyberte až 8 markerů pro analýzu. Popisy markerů naleznete níže."
+    )
+    if not navrzeno:
+        st.warning("Vyberte alespoň jeden marker.")
+        st.stop()
+
+# Zobrazení popisů vybraných markerů
+st.write("**Popisy vybraných markerů:**")
+for marker in navrzeno:
+    st.markdown(f"- **{marker}**: {MARKER_POPIS.get(marker, 'Popis není k dispozici.')}")
 
 st.write("**Zvolte fluorochromy pro každý marker:**")
 fluoro_volby = {}
 for marker in navrzeno:
-    # Zobrazení názvu markeru
     st.markdown(f"**{marker}:**")
-    # Selectbox s prostými názvy fluorochromů
     selected_fluoro = st.selectbox(
         "",
         list(FLUOROCHROM_DB.keys()),
@@ -134,7 +201,6 @@ for marker in navrzeno:
         label_visibility="collapsed"
     )
     fluoro_volby[marker] = selected_fluoro
-    # Zobrazení barevné tečky podle vybraného fluorochromu
     laser = FLUOROCHROM_DB[selected_fluoro][1]
     color = LASER_BARVY.get(laser, "white")
     st.markdown(
@@ -153,19 +219,15 @@ if konflikty:
 else:
     st.success("Bez spektrálních konfliktů. Panel je v pořádku.")
 
-# Rozdělení layoutu na dva sloupce
 col1, col2 = st.columns([1, 1])
 
 with col1:
     st.write("**Předpokládaná kompenzační matice (%):**")
     kompenzace_df = generuj_kompenzaci(zvolene_fluora)
-
-    # Barevné zvýraznění laserů
     def zbarvi_bunky(val):
         laser = FLUOROCHROM_DB[val.name][1] if val.name in FLUOROCHROM_DB else None
         color = LASER_BARVY.get(laser, "white")
         return [f"background-color: {color}" for _ in val]
-
     st.dataframe(kompenzace_df.style.apply(zbarvi_bunky, axis=1))
 
 with col2:
