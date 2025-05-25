@@ -6,11 +6,11 @@ import pandas as pd
 # Ukázková databáze markerů a typických diagnóz
 MARKER_DB = {
     "Leukémie": ["CD45", "CD34", "CD117", "CD13", "CD33"],
-    "Imunodeficience": ["CD3", "CD4", "CD8", "CD19", "CD56"],
-    "Lymfomy": ["CD20", "CD5", "CD10", "BCL2", "Ki67"],
-    "Monocyty - fenotypizace": ["CD14", "CD16", "HLA-DR"],
-    "B-lymfocyty - fenotypizace": ["CD19", "CD20", "CD27", "IgD", "CD38"],
-    "T-lymfocyty - fenotypizace": ["CD3", "CD4", "CD8", "CD25", "CD127"]
+    "Imunodeficience": ["CD45", "CD3", "CD4", "CD8", "CD19", "CD56"],
+    "Lymfomy": ["CD45", "CD20", "CD5", "CD10", "BCL2", "Ki67"],
+    "Monocyty - fenotypizace": ["CD45", "CD14", "CD16", "HLA-DR"],
+    "B-lymfocyty - fenotypizace": ["CD45", "CD19", "CD20", "CD27", "IgD", "CD38"],
+    "T-lymfocyty - fenotypizace": ["CD45", "CD3", "CD4", "CD8", "CD25", "CD127"]
 }
 
 # Fluorochromy s emisními maximy (nm) a laserem
