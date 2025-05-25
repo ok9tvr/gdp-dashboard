@@ -38,6 +38,7 @@ FLUOROCHROM_DB = {
 }
 
 # Přibližná spektrální data (vlnová délka, relativní intenzita)
+# Poznámka: Tato data lze nahradit přesnějšími spektry z FPbase, Thermo Fisher apod.
 SPECTRA_DB = {
     "FITC": [(480, 0.1), (500, 0.5), (519, 1.0), (540, 0.5), (560, 0.2), (580, 0.05)],
     "PE": [(540, 0.1), (560, 0.4), (578, 1.0), (600, 0.6), (620, 0.3), (650, 0.1)],
