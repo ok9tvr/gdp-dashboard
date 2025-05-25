@@ -16,7 +16,7 @@ FLUOROCHROM_DB = {
     "FITC": (519, "488 nm"),
     "PE": (578, "488 nm"),
     "PerCP": (677, "488 nm"),
-    "APC": (660, "633 nm"),
+    " APC": (660, "633 nm"),
     "Pacific Blue": (455, "405 nm"),
     "Alexa Fluor 700": (723, "633 nm"),
     "BV421": (421, "405 nm"),
@@ -72,20 +72,24 @@ navrzeno = MARKER_DB[scenar]
 st.write(f"**Navržené markery:** {', '.join(navrzeno)}")
 
 st.write("**Zvolte fluorochromy pro každý marker:**")
-fluoro_volby = {}
-# Vytvoření seznamu fluorochromů s barevnými tečkami
-fluoro_options = [
+# Vytvoření seznamu fluorochromů s barevnými tečkami pro zobrazení
+fluoro_display = [
     f"<span style='display: inline-flex; align-items: center;'><span style='width: 12px; height: 12px; border-radius: 50%; background-color: {LASER_BARVY[FLUOROCHROM_DB[f][1]]}; margin-right: 8px;'></span>{f}</span>"
     for f in FLUOROCHROM_DB.keys()
 ]
+# Mapování zobrazených názvů na skutečné hodnoty fluorochromů
+fluoro_map = dict(zip(fluoro_display, FLUOROCHROM_DB.keys()))
 
+fluoro_volby = {}
 for marker in navrzeno:
-    fluoro_volby[marker] = st.selectbox(
-        f"{marker}:",
-        list(FLUOROCHROM_DB.keys()),
-        format_func=lambda x: st.markdown(f"<span style='display: inline-flex; align-items: center;'><span style='width: 12px; height: 12px; border-radius: 50%; background-color: {LASER_BARVY[FLUOROCHROM_DB[x][1]]}; margin-right: 8px;'></span>{x}</span>", unsafe_allow_html=True) or x,
-        key=marker
+    st.markdown(f"**{marker}:**", unsafe_allow_html=True)
+    selected_display = st.selectbox(
+        "",
+        fluoro_display,
+        key=marker,
+        label_visibility="collapsed"
     )
+    fluoro_volby[marker] = fluoro_map[selected_display]
 
 zvolene_fluora = list(fluoro_volby.values())
 konflikty = kontroluj_spektralni_konflikt(zvolene_fluora)
