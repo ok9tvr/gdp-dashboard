@@ -1,5 +1,3 @@
-# Streamlit demo: Výběr markerů, fluorochromů a interpretace (bez OpenAI, s kompenzací)
-
 import streamlit as st
 import pandas as pd
 
@@ -28,13 +26,19 @@ FLUOROCHROM_DB = {
     "PE-Cy5.5": (695, "488 nm"),
     "PE-Cy7": (780, "488 nm"),
     "APC-Cy7": (785, "633 nm"),
-    "ECD": (610, "488 nm")
+    "ECD": (610, "488 nm"),
+    "Pacific Orange": (551, "405 nm"),
+    "BV650": (650, "405 nm"),
+    "Alexa Fluor 647": (668, "633 nm"),
+    "PE-CF594": (617, "488 nm"),
+    "AmCyan": (491, "405 nm"),
+    "VioGreen": (520, "405 nm")
 }
 
 LASER_BARVY = {
     "405 nm": "#D6BBF7",  # fialová
     "488 nm": "#A9CCE3",  # světle modrá
-    "633 nm": "#F5B7B1"
+    "633 nm": "#F5B7B1"   # světle červená
 }
 
 def kontroluj_spektralni_konflikt(vybrane):
@@ -69,8 +73,19 @@ st.write(f"**Navržené markery:** {', '.join(navrzeno)}")
 
 st.write("**Zvolte fluorochromy pro každý marker:**")
 fluoro_volby = {}
+# Vytvoření seznamu fluorochromů s barevnými tečkami
+fluoro_options = [
+    f"<span style='display: inline-flex; align-items: center;'><span style='width: 12px; height: 12px; border-radius: 50%; background-color: {LASER_BARVY[FLUOROCHROM_DB[f][1]]}; margin-right: 8px;'></span>{f}</span>"
+    for f in FLUOROCHROM_DB.keys()
+]
+
 for marker in navrzeno:
-    fluoro_volby[marker] = st.selectbox(f"{marker}:", list(FLUOROCHROM_DB.keys()), key=marker)
+    fluoro_volby[marker] = st.selectbox(
+        f"{marker}:",
+        list(FLUOROCHROM_DB.keys()),
+        format_func=lambda x: st.markdown(f"<span style='display: inline-flex; align-items: center;'><span style='width: 12px; height: 12px; border-radius: 50%; background-color: {LASER_BARVY[FLUOROCHROM_DB[x][1]]}; margin-right: 8px;'></span>{x}</span>", unsafe_allow_html=True) or x,
+        key=marker
+    )
 
 zvolene_fluora = list(fluoro_volby.values())
 konflikty = kontroluj_spektralni_konflikt(zvolene_fluora)
