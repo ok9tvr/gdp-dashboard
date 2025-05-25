@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 # Ukázková databáze markerů a typických diagnóz
 MARKER_DB = {
@@ -65,6 +67,28 @@ def generuj_kompenzaci(fluora):
         data.append(row)
     return pd.DataFrame(data, index=kanaly, columns=kanaly)
 
+def generuj_spektra(fluora):
+    # Vytvoření grafu emisních spekter
+    fig, ax = plt.subplots(figsize=(6, 4))
+    vlnove_delky = np.linspace(400, 800, 400)  # Rozsah vlnových délek (nm)
+    sigma = 30  # Šířka gaussovské křivky (přibližná hodnota pro fluorochromy)
+    
+    for fluor in set(fluora):  # Použijeme set pro odstranění duplikátů
+        emisni_max = FLUOROCHROM_DB[fluor][0]
+        laser = FLUOROCHROM_DB[fluor][1]
+        barva = LASER_BARVY.get(laser, "gray")
+        # Gaussovská křivka pro simulaci emisního spektra
+        intenzita = np.exp(-((vlnove_delky - emisni_max) ** 2) / (2 * sigma ** 2))
+        ax.plot(vlnove_delky, intenzita, label=fluor, color=barva, linewidth=2)
+    
+    ax.set_xlabel("Vlnová délka (nm)")
+    ax.set_ylabel("Relativní intenzita")
+    ax.set_title("Emisní spektra vybraných fluorochromů")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    return fig
+
 st.title("AI nástroj: Návrh panelu a spektrální kompenzace")
 
 scenar = st.selectbox("Vyberte klinický scénář:", list(MARKER_DB.keys()))
@@ -103,13 +127,22 @@ if konflikty:
 else:
     st.success("Bez spektrálních konfliktů. Panel je v pořádku.")
 
-st.write("**Předpokládaná kompenzační matice (%):**")
-kompenzace_df = generuj_kompenzaci(zvolene_fluora)
+# Rozdělení layoutu na dva sloupce
+col1, col2 = st.columns([1, 1])
 
-# Barevné zvýraznění laserů
-def zbarvi_bunky(val):
-    laser = FLUOROCHROM_DB[val.name][1] if val.name in FLUOROCHROM_DB else None
-    color = LASER_BARVY.get(laser, "white")
-    return [f"background-color: {color}" for _ in val]
+with col1:
+    st.write("**Předpokládaná kompenzační matice (%):**")
+    kompenzace_df = generuj_kompenzaci(zvolene_fluora)
 
-st.dataframe(kompenzace_df.style.apply(zbarvi_bunky, axis=1))
+    # Barevné zvýraznění laserů
+    def zbarvi_bunky(val):
+        laser = FLUOROCHROM_DB[val.name][1] if val.name in FLUOROCHROM_DB else None
+        color = LASER_BARVY.get(laser, "white")
+        return [f"background-color: {color}" for _ in val]
+
+    st.dataframe(kompenzace_df.style.apply(zbarvi_bunky, axis=1))
+
+with col2:
+    st.write("**Emisní spektra vybraných fluorochromů:**")
+    fig = generuj_spektra(zvolene_fluora)
+    st.pyplot(fig)
